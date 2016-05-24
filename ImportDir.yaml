@@ -5,14 +5,14 @@ tosca_definitions_version: cloudify_dsl_1_0
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
   - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
-  #- https://github.com/WorkflowCenter-Repositories/Mega-NJ-Task/raw/master/ImportFile_nodetype.yaml
+  #- https://github.com/WorkflowCenter-Repositories/ImportDir-Task/raw/master/ImportDir_nodetype.yaml
 
 inputs:
 
   input-dir:
       description: >
         The dir path of the input files  
-      default: 'input'
+      default: 'input/Data'
 
   docker-image: 
       description: > 
@@ -94,21 +94,16 @@ node_templates:
       SourceFolder: { get_input: input-dir }
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
-          implementation: Core-LifecycleScripts/task-download-single.sh
-          inputs:
-            process:
-             args: [ImportDir, ImportDir-container, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/importdir1.jar']
         configure:
           implementation: scripts/get-Dir.sh
           inputs:
             process:
-             args: [Picard, { get_input: input-dir }]
+             args: [ImportDir, { get_input: input-dir }]
         start: 
-          implementation: Core-LifecycleScripts/task-deploy.sh
+          implementation: Core-LifecycleScripts/block-deploy3.sh
           inputs:
             process:
-             args: [Picard, container1, { get_input: input-dir }]
+             args: [ImportDir, ImportDir-container, 'https://github.com/WorkflowCenter-Repositories/ImportDir-Task/raw/master/importdir1.jar', { get_input: input-dir }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container

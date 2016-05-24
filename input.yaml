@@ -1,6 +1,5 @@
-input-dir: 'input' #input directory
-input-file: 'file1.txt'  #first input file
-docker-image: 'rawa/mega-cc'   #Docker image
+input-dir: 'input/Data' #input directory
+docker-image: 'dtdwd/importdir1'   #Docker image
 
 
 

@@ -16,11 +16,11 @@ fi
 sudo service docker start
 
   echo "deploy the workflow"
-   if [[ -d ~/ImportFile ]]; then
+   if [[ -d ~/ImportDile ]]; then
       echo "previous workflow execution exists and will be deleted"
-      rm -r ~/ImportFile 
+      rm -r ~/ImportDile 
    fi
-  cfy local init --install-plugins -p ImportFile.yaml --input input.yaml
+  cfy local init --install-plugins -p ImportDile.yaml --input input.yaml
 
 cfy local execute -w install
 
