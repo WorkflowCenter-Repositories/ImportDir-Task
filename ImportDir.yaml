@@ -1,0 +1,131 @@
+# Blueprint to deploy ImportDir task
+
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
+  #- https://github.com/WorkflowCenter-Repositories/Mega-NJ-Task/raw/master/ImportFile_nodetype.yaml
+
+inputs:
+
+  input-dir:
+      description: >
+        The dir path of the input files  
+      default: 'input'
+
+  docker-image: 
+      description: > 
+        Docker image to be used for container building
+      default: 'dtdwd/importdir1'
+
+node_types:
+
+  docker_container:
+    derived_from: cloudify.nodes.Root
+    properties:
+      image_name:
+        type: string
+        default: { get_input: docker-image }
+      container_ID:
+        type: string
+        default: container1
+
+node_templates:
+
+  host:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: localhost
+      install_agent: false
+
+  starterBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/start-inhost.sh
+          inputs:
+            process:
+              args: [ImportDir]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  container:
+    type: docker_container
+    properties:
+      container_ID: ImportDir-container
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [ImportDir]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [ImportDir-container]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container
+
+  ImportDir:
+    type: Import-Dir
+    properties:
+      block_description: import Dir
+      block_name: importdir1.jar
+      block_category: File Management
+      service_type: block
+      SourceFolder: { get_input: input-dir }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: Core-LifecycleScripts/task-download-single.sh
+          inputs:
+            process:
+             args: [ImportDir, ImportDir-container, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/importdir1.jar']
+        configure:
+          implementation: scripts/get-Dir.sh
+          inputs:
+            process:
+             args: [Picard, { get_input: input-dir }]
+        start: 
+          implementation: Core-LifecycleScripts/task-deploy.sh
+          inputs:
+            process:
+             args: [Picard, container1, { get_input: input-dir }]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container
+      - type: cloudify.relationships.depends_on
+        target: Java
+
+  finalBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/final-inhost.sh
+          inputs:
+            process:
+              args: [ImportDir]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ImportDir

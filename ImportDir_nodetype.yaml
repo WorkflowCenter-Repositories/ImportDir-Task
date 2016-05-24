@@ -1,0 +1,51 @@
+node_types:
+# general block
+  workflow_service:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      block_description:
+        description: Description of the block function
+        type: string
+      block_name:
+        type: string
+      block_category:
+        type: string
+      service_type:
+        type: string
+
+  Import-Dir:
+    derived_from: workflow_service
+    properties:
+      SourceFolder:
+        type: string
+        default: ' '
+      Recursive:
+        type: boolean
+        default: false
+      OrderByName:
+        type: boolean
+        default: true
+      OrderByTimestamp:
+        type: boolean
+        default: false
+      Wildcard:
+        type: string
+        default: "*.*"
+      ImportToSubDirectory:
+        type: boolean
+        default: false
+      SubDirectoryName:
+        type: string
+        default: ''
+      KeepDirStructure:
+        type: boolean
+        default: false
+      KeepSameFolderAsServer:
+        type: boolean
+        default: false
+      #output
+      imported-files:
+        type: string
+        default: file-wrapper
+
+
